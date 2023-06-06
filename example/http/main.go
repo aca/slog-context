@@ -7,14 +7,14 @@ import (
 	"net/http"
 	"os"
 
-	slogctx "github.com/aca/slog-context"
+	lctx "github.com/aca/slog-context"
 	"golang.org/x/exp/slog"
 )
 
 func main() {
-	ctxLogger := slogctx.NewContextHandler(
+	ctxLogger := lctx.NewContextHandler(
 		slog.NewTextHandler(os.Stdout, nil),
-		[]slogctx.ContextKey{
+		[]lctx.ContextKey{
 			TraceID,
 		},
 	)
@@ -24,7 +24,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-var TraceID slogctx.ContextKey = "traceID"
+var TraceID = lctx.Key("traceID")
 
 // Middleware to inject traceID for each request
 func TraceMW(h http.HandlerFunc) http.HandlerFunc {

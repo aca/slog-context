@@ -2,7 +2,10 @@ package context
 
 import (
 	"context"
+	"os"
+	"time"
 
+	"github.com/lmittmann/tint"
 	"golang.org/x/exp/slog"
 )
 
@@ -13,11 +16,26 @@ type ContextHandler struct {
 	keys    []ContextKey
 }
 
+func Key(v string) ContextKey {
+	return ContextKey(v)
+}
+
 func NewContextHandler(h slog.Handler, k []ContextKey) *ContextHandler {
 	return &ContextHandler{
 		handler: h,
 		keys:    k,
 	}
+}
+
+func SetDefaultTintDebugLogger(keys... ContextKey) {
+	tintHandler := tint.NewHandler(os.Stderr, &tint.Options{
+        Level:      slog.LevelDebug,
+        TimeFormat: time.Kitchen,
+		AddSource: true,
+    })
+
+	h := NewContextHandler(tintHandler, keys)
+	slog.SetDefault(slog.New(h))
 }
 
 func (h *ContextHandler) Handle(ctx context.Context, r slog.Record) error {

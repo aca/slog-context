@@ -27,18 +27,21 @@ import (
 	"context"
 	"os"
 
-	slogctx "github.com/aca/slog-context"
+	lctx "github.com/aca/slog-context"
 	"golang.org/x/exp/slog"
 )
 
-var UserID slogctx.ContextKey = "user"
+var UserKey = lctx.Key("user")
 
 func main() {
-	ctxLogger := slogctx.NewContextHandler(slog.NewTextHandler(os.Stdout, nil), []slogctx.ContextKey{UserID})
+	ctxLogger := lctx.NewContextHandler(
+		slog.NewTextHandler(os.Stdout, nil), 
+		[]lctx.ContextKey{UserKey},
+	)
 	slog.SetDefault(slog.New(ctxLogger))
 
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, UserID, "john")
+	ctx = context.WithValue(ctx, UserKey, "john")
 
 	A(ctx)
 }
@@ -64,14 +67,14 @@ import (
 	"net/http"
 	"os"
 
-	slogctx "github.com/aca/slog-context"
+	lctx "github.com/aca/slog-context"
 	"golang.org/x/exp/slog"
 )
 
-func main(){
-	ctxLogger := slogctx.NewContextHandler(
+func main() {
+	ctxLogger := lctx.NewContextHandler(
 		slog.NewTextHandler(os.Stdout, nil),
-		[]slogctx.ContextKey{
+		[]lctx.ContextKey{
 			TraceID,
 		},
 	)
@@ -81,14 +84,14 @@ func main(){
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
-var TraceID slogctx.ContextKey = "traceID"
+var TraceID = lctx.Key("traceID")
 
 // Middleware to inject traceID for each request
 func TraceMW(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, TraceID, rand.Int())
-		h(w,r.WithContext(ctx))
+		h(w, r.WithContext(ctx))
 	}
 }
 
